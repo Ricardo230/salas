@@ -1,0 +1,151 @@
+easy_admin:
+  formats:
+    date:     'Y-m-d'
+    time:     'H:i'
+    datetime: 'Y-m-d H:i:s'
+  site_name: 'Salas'
+  design:
+    brand_color: '#664FA3'
+    assets:
+      favicon: '/assets/icons/M22-fav.png'
+    menu:
+        - { label: 'Salas' }
+        - { entity: 'ApartadoSala', label: 'Apartados de sala', default: true }
+        - { entity: 'Sala', label: 'Salas' }
+        - { label: 'Usuarios' }
+        - User
+  show:
+    max_results: 20
+  list:
+    max_results: 20
+  formats:
+    date:     'Y-m-d'
+    time:     'H:i'
+    datetime: 'Y-m-d H:i:s'
+  entities:
+    # change the following to the namespaces of your own entities
+    User:
+      class: AppBundle\Entity\User
+      disabled_actions: ['delete']
+      label: 'Usuarios'
+      list:
+          #dql_filter: 'entity.flagActiva > 0'
+          fields:
+            - nombre
+            - apellido_paterno
+            - apellido_materno
+            - puesto
+            - username
+            - { property: 'email_canonical', label: 'Email' }
+            #- { property: 'flag_activa', label: 'Activa', css_class: text-center, type: 'boolean', widget: 'label' }
+            - { property: 'enabled', label: 'Activo', css_class: text-center, type: 'toggle' }
+            ##- { property: 'fecha_creacion'}
+            #- { property: 'flag_activa', label: 'Activa', Type: 'toggle' }
+            #Se puede definir el formato de fecha directo: format: 'Y-m-d'
+          # if the field name contains a dot, it's the property of a Doctrine association
+          # this config displays the 'email' and 'phone' properties of the
+          # Doctrine entity associated via the 'user' property of 'Customer'
+          #fields: ['nombre', 'user.email', 'user.phone']
+          title: "Listado de Usuarios"
+          #help: '<a href="/adm1n/register">Crear nuevo usuario</a>'
+          max_results: 20
+          sort: ['nombre', 'ASC']
+          actions:
+            - { name: 'edit', icon: 'edit', label: 'Editar' }
+            - { name: 'search', icon: 'find', label: 'Buscar' }
+            - { name: 'new', label: 'Crear Usuario' }
+      ##Formularios
+      new:
+          title:  'Agregar Usuario'
+          fields:
+            - { property: 'nombre', label: 'Nombre', type: 'text' }
+            - { property: 'apellido_paterno', label: 'Apellido Paterno', type: 'text' }
+            - { property: 'apellido_materno', label: 'Apellido Materno', type: 'text' }
+            - { property: 'puesto', label: 'Puesto', type: 'text' }
+            - { property: 'username', label: 'Nombre de usuario', type: 'text' }
+            - { property: 'email', label: 'Correo Electrónico', type: 'email' }
+            - { property: 'plainPassword', type: 'repeated', type_options: { type: 'Symfony\Component\Form\Extension\Core\Type\PasswordType', invalid_message: 'Las dos contraseñas deben coincidir', first_options: { label: 'Contraseña' }, second_options: { label: 'Confirmar Contraseña' }, required: true } }
+            - { property: 'roles', label: Rol,type: 'choice', type_options: { multiple: true, choices: { 'Usuario': 'ROLE_POWER_USER', 'Administrador': 'ROLE_ADMIN', 'Super Administrador': 'ROLE_SUPER_ADMIN' } } }
+      edit:
+        title: 'Editar Usuario'
+        fields:
+          - { property: 'nombre', label: 'Nombre: ', type: 'text' }
+          - { property: 'apellido_paterno', label: 'Apellido Paterno', type: 'text' }
+          - { property: 'apellido_materno', label: 'Apellido Materno', type: 'text' }
+          - { property: 'puesto', label: 'Puesto', type: 'text' }
+          - { property: 'roles', label: Rol,type: 'choice', type_options: { multiple: true, choices: { 'Usuario': 'ROLE_POWER_USER', 'Administrador': 'ROLE_ADMIN', 'Super Administrador': 'ROLE_SUPER_ADMIN' } } }
+    Sala:
+      class: AppBundle\Entity\Sala
+      disabled_actions: ['delete']
+      label: 'Salas'
+      list:
+          #dql_filter: 'entity.flagActiva > 0'
+          fields:
+            - { property: 'nombre', label: 'Nombre de Sala' }
+            - ubicacion_piso
+            - numero
+            - { property: 'horaInicio', label: 'Disponible a Partir de', format: 'H:i a' }
+            - { property: 'horaFin', label: 'Disponible Hasta', format: 'H:i a' }
+            - { property: 'flag_activa', label: 'Activa', css_class: text-center, type: 'toggle' }
+          title: "Listado de Salas"
+          #help: '<a href="/adm1n/register">Crear nuevo usuario</a>'
+          max_results: 20
+          sort: ['nombre', 'ASC']
+          actions:
+            - { name: 'edit', icon: 'edit', label: 'Editar' }
+            - { name: 'search', icon: 'find', label: 'Buscar' }
+            - { name: 'new', label: 'Crear Sala' }
+      ##Formularios
+      new:
+          title:  'Agregar Sala'
+          fields:
+            - { property: 'nombre', label: 'Nombre', type: 'text' }
+            - { property: 'ubicacion_piso', label: 'Ubicación de piso', type: 'text' }
+            - { property: 'numero', label: 'Número de sala', type: 'integer' }
+            - { property: 'horaInicio', label: 'Disponible desde', type: 'time', type_options: { widget: 'single_text' } }
+            - { property: 'horaFin', label: 'Disponible hasta', type: 'time', type_options: { widget: 'single_text' } }
+      edit:
+        title: 'Editar Sala'
+        fields:
+          - { property: 'nombre', label: 'Nombre', type: 'text' }
+          - { property: 'ubicacion_piso', label: 'Ubicación de piso', type: 'text' }
+          - { property: 'numero', label: 'Número de sala', type: 'integer' }
+          - { property: 'horaInicio', label: 'Disponible desde', type: 'time', type_options: { widget: 'single_text' } }
+          - { property: 'horaFin', label: 'Disponible hasta', type: 'time', type_options: { widget: 'single_text' } }
+    ApartadoSala:
+      class: AppBundle\Entity\ApartadoSala
+      disabled_actions: ['delete']
+      label: 'Reservación de Sala'
+      templates:
+        new: 'easy_admin/new.html.twig'
+      list:
+          #dql_filter: 'entity.flagActiva > 0'
+          #fields:
+          #  - { property: 'nombre', label: 'Nombre de Sala' }
+          #  - ubicacion_piso
+          #  - numero
+          #  - { property: 'flag_activa', label: 'Activa', css_class: text-center, type: 'toggle' }
+          title: "Listado de Reservaciones de Salas"
+          #help: '<a href="/adm1n/register">Crear nuevo usuario</a>'
+          max_results: 20
+          sort: ['fecha', 'ASC']
+          actions:
+            - { name: 'edit', icon: 'edit', label: 'Editar' }
+            - { name: 'search', icon: 'find', label: 'Buscar' }
+            - { name: 'new', label: 'Crear Reservación' }
+
+      ##Formularios
+      new:
+        title: 'Agregar Reservación de Sala'
+        fields:
+          - { property: 'fecha', label: 'Fecha ', type: 'date', type_options: { widget: 'single_text' } }
+          - { property: 'sala', type_options: { query_builder: 'AppBundle\Repository\SalaRepository::salasDisponibles' } }
+          - { property: 'hora', label: false, type: 'time', type_options: { widget: 'single_text', attr: { class: 'hidden' } } }
+          - { property: 'personas', label: 'Personas involucradas', type_options: { query_builder: 'AppBundle\Repository\UserRepository::getUsers' } }
+          #- { property: 'usuario', label: 'Usuario', type: 'entity', type_options: { attr: { class: 'hidden' } } }
+          #- { property: 'usuario', label: 'Usuarios', type: 'entity', type_options: { multiple: true, attr: { class: 'chosen' } } }
+        
+          #- { property: 'usuario', label: 'Usuario', type: 'entity', type_options: { class: 'AppBundle\Entity\User', multiple: false }}
+          #- { property: 'hora', label: 'Hr', type: 'time', type_options: { widget: 'single_text' } }
+    SalaPersonas:
+      class: AppBundle\Entity\SalaPersonas

@@ -1,0 +1,275 @@
+{% form_theme form with easyadmin_config('design.form_theme') %}
+
+{% set _entity_config = easyadmin_entity(app.request.query.get('entity')) %}
+{% trans_default_domain _entity_config.translation_domain %}
+{% set _trans_parameters = { '%entity_name%': _entity_config.name|trans, '%entity_label%': _entity_config.label|trans } %}
+
+{% extends _entity_config.templates.layout %}
+
+{% block body_id 'easyadmin-new-' ~ _entity_config.name %}
+{% block body_class 'new new-' ~ _entity_config.name|lower %}
+
+{% block content_title %}
+{% spaceless %}
+    {% set _default_title = 'new.page_title'|trans(_trans_parameters, 'EasyAdminBundle') %}
+    {{ _entity_config.new.title is defined ? _entity_config.new.title|trans(_trans_parameters) : _default_title }}
+{% endspaceless %}
+{% endblock %}
+
+{% block main %}
+    {% block entity_form %}
+        {{ form(form) }}
+    {% endblock entity_form %}
+{% endblock %}
+
+{% block body_javascript %}
+    {{ parent() }}
+
+    <script type="text/javascript">
+        $(function() {
+            $('.new-form').areYouSure({ 'message': '{{ 'form.are_you_sure'|trans({}, 'EasyAdminBundle')|e('js') }}' });
+
+            $('.form-actions').easyAdminSticky();
+        });
+        $(document).ready(function(){
+            //alert("Ya estuvo!");
+            $(".field-entity").last().append('<div class="horas_sala" id="horario_sala" style="margin-left: 18%; margin-top: 5%;"></div>');
+            $("#apartadosala_usuario").val( {{ app.user.id }} );
+        });
+        $("#apartadosala_fecha").change(function(){
+            //this.valueAsDate = new Date();
+            var fecha = this.value;
+            var id_sala = $("#apartadosala_sala").val();
+            generaHorarios(fecha, id_sala);
+        });
+        $("#apartadosala_sala").change(function(){
+            //this.valueAsDate = new Date();
+            var id_sala = this.value;
+            var fecha = $("#apartadosala_fecha").val();
+            generaHorarios(fecha, id_sala);
+        });
+
+        /**$("#new-apartadosala-form").submit(function(){
+            // Get all the forms elements and their values in one step
+            var dataArray = $(this).serializeArray(), dataObj = {};
+
+            $(dataArray).each(function(i, field){
+                dataObj[field.name] = field.value;
+            });
+            alert(dataObj['apartadosala[fecha]']);
+            alert(dataObj['apartadosala[sala]']);
+            alert(dataObj['apartadosala[hora]']);
+            /*data = { 
+                'apartadosala[fecha]' = dataObj['apartadosala[fecha]'],
+                'apartadosala[sala]' = dataObj['apartadosala[sala]']
+            }
+
+            //alert(dataObj['apartadosala[fecha]']);
+             $.ajax({  
+                data : {'id_sala': id_sala, 'fecha': fecha},
+                url:        '/adm1n/sala/ajaxReserva',  
+                type:       'POST',   
+                dataType:   'json',  
+                async:      false,  
+               
+                success: function(data, status) {
+                    if(data.length > 0){
+                        
+                    }else{
+                            
+                    }                
+                },  
+                error : function(xhr, textStatus, errorThrown) {  
+                    alert('Ajax request failed.');  
+                }  
+            });*/
+        /**});*/
+
+        function generaHorarios(fecha, id_sala){
+            var posicion = -1;
+            if(fecha != '' && id_sala != ''){
+                const nombreMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+                const fecha_date = new Date(fecha);
+                fecha_date.setDate(fecha_date.getDate() + 1);
+                //alert("Están los dos datos y pasa");
+                //Obtiene el horario de la sala seleccionada
+                $.ajax({  
+                    data : {'id_sala': id_sala, 'fecha': fecha},
+                    url:        '/adm1n/sala/ajaxReservaciones',  
+                    type:       'POST',   
+                    dataType:   'json',  
+                    async:      false,  
+               
+                    success: function(data, status) {
+                        if(data.length > 0){
+                            /*var e = $('<tr><th>ID</th><th>Fecha</th><th>Hora</th></tr>');  
+                            $('#horario_sala').html('');  
+                            $('#horario_sala').append(e);*/
+                            var horasApartadas = new Array();
+                            for(i = 0; i < data.length; i++) {  
+                                reservacion = data[i];
+                                horasApartadas[i] = parseInt(reservacion['hora']);
+                                //alert("ID: "+reservacion['id']+" - Fecha: "+reservacion['fecha']+" - Hora: "+reservacion['hora']);
+                                
+                                /*var e = $('<tr><td id = "id"></td><td id = "fecha"></td><td id = "hr"></td></tr>');
+                     
+                                $('#id', e).html(reservacion['id']);  
+                                $('#nombre', e).html(reservacion['fecha']);
+                                $('#nombre', e).html(reservacion['hora']);
+                                $('#horario_sala').append(e);  */
+                            }
+                            console.log(horasApartadas);
+                            
+                            $.post("/adm1n/sala/ajaxSalas", { id_sala : id_sala }, function(result){
+                                var hr_inicio = result[0].hora_inicio;
+                                var data_hrInicio = hr_inicio.split(':');
+                                var horaIni = parseInt(data_hrInicio[0]);
+                                
+                                var hr_fin = result[0].hora_fin;
+                                var data_hrFin = hr_fin.split(':');
+                                var horaFin = parseInt(data_hrFin[0]);
+
+                                var hrs_dia = parseInt(horaFin)-parseInt(horaIni);
+
+
+                                var html = '<h3>Horarios del día '+fecha_date.getDate()+' de '+nombreMeses[fecha_date.getMonth()]+' del '+fecha_date.getFullYear()+'</h3>'+
+                                '<div class="col-md-12">';
+                                var complemento = ':00';
+
+                                //var mySet = new Set(horasApartadas);
+
+                                for(var i = horaIni; i <= horaFin; i++){
+                                    if(i < 12){
+                                        if(i < 10){
+                                            i = '0'+i;    
+                                        }
+                                        var meridiano = ' am';
+                                    }else{
+                                        var meridiano = ' pm';
+                                    }
+
+                                    var posicion = horasApartadas.indexOf(i);
+
+                                    if(posicion >= 0){
+                                        html += '<div class="col-md-6" style="background-color: #f2dede; border-radius: 4px;">'+
+                                            '<div class="radio">'+
+                                                '<i class="fa fa-clock-o" aria-hidden="true"></i><label style="margin-left: 40%;"><input type="radio" disabled="disabled" name="hora_apartado" class="radio_hr" value="'+i+complemento+'" onClick=radioFunction(this)>'+i+complemento+meridiano+'</label>'+
+                                            '</div>'+
+                                        '</div>';
+                                    }else{
+                                        html += '<div class="col-md-6" style="background-color: #dff0d8; border-radius: 4px;">'+
+                                            '<div class="radio">'+
+                                                '<i class="fa fa-clock-o" aria-hidden="true"></i><label style="margin-left: 40%;"><input type="radio" name="hora_apartado" class="radio_hr" value="'+i+complemento+'" onClick=radioFunction(this)>'+i+complemento+meridiano+'</label>'+
+                                            '</div>'+
+                                        '</div>';
+
+                                    }
+
+                                    
+                                    //html += '<p>'+i+'</p>';
+
+                                    /*var c = i+complemento;
+
+                                    if(typeof data['hora'] === c) {
+                                        alert("c: "+c);
+                                        alert("está la hr: "+data['hora']);
+                                    }else {
+                                        alert("c: "+c);
+                                    }*/
+
+                                    /*if(data['hora'] == c){
+                                        alert("c: "+c);
+                                        alert("está la hr: "+data['hora']);
+                                    }else{
+                                        alert("c: "+c);
+                                    }*/
+
+                                }
+                                var hrs_totales = parseInt(hrs_dia)+1;
+                                var mod = hrs_totales%2;
+                                if(mod == 1){
+                                    html += '<div class="col-md-6" style="background-color: #dff0d8; border-radius: 4px;">'+
+                                            '<div class="radio">'+
+                                                '<i class="fa fa-clock-o" aria-hidden="true"></i><label style="margin-left: 40%;">N/A</label>'+
+                                            '</div>'+
+                                        '</div>';
+                                }
+                                //alert("hay "+hrs_dia);
+                                html += '</div>';
+                                var e = $(html);
+
+                                  
+                                $('#horario_sala').html('');
+                                $('#horario_sala').append(e);
+                            });
+
+                        //console.log(data[0].hora_inicio);
+                        //console.log(data[0].hora_fin);
+                        }else{
+                            $.post("/adm1n/sala/ajaxSalas", { id_sala : id_sala }, function(result){
+                                //$("span").html(result);
+                                var hr_inicio = result[0].hora_inicio;
+                                var data_hrInicio = hr_inicio.split(':');
+                                var horaIni = parseInt(data_hrInicio[0]);
+                                
+                                var hr_fin = result[0].hora_fin;
+                                var data_hrFin = hr_fin.split(':');
+                                var horaFin = parseInt(data_hrFin[0]);
+
+                                //alert("horaFin: "+horaFin+" horaIni: "+horaIni);
+
+                                var hrs_dia = parseInt(horaFin)-parseInt(horaIni);
+
+
+                                var html = '<h3>Horarios del día '+fecha_date.getDate()+' de '+nombreMeses[fecha_date.getMonth()]+' del '+fecha_date.getFullYear()+'</h3>'+
+                                '<div class="col-md-12">';
+                                var complemento = ':00';
+                                for(var i = horaIni; i <= horaFin; i++){
+                                    if(i < 12){
+                                        if(i < 10){
+                                            i = '0'+i;    
+                                        }
+                                        var meridiano = ' am';
+                                    }else{
+                                        var meridiano = ' pm';
+                                    }
+                                    html += '<div class="col-md-6">'+
+                                        '<div class="radio">'+
+                                            '<label><input type="radio" name="hora_apartado" class="radio_hr" value="'+i+complemento+'" onClick=radioFunction(this)>'+i+complemento+meridiano+'</label>'+
+                                        '</div>'+
+                                    '</div>';
+                                    //html += '<p>'+i+'</p>';
+                                }
+                                //alert("hay "+hrs_dia);
+                                html += '</div>';
+                                var e = $(html);
+
+                                  
+                                $('#horario_sala').html('');
+                                $('#horario_sala').append(e);
+                            });
+                        }                
+                    },  
+                    error : function(xhr, textStatus, errorThrown) {  
+                        alert('Ajax request failed.');  
+                    }  
+                });
+            }else{
+                //alert("No están los dos datos y no pasa");
+            }
+        }
+
+        function radioFunction(radio){
+
+            //$('input[type=radio][name=hora_apartado]').click(function() {
+                var valor = radio.value;
+                //alert(valor);
+                $("#apartadosala_hora").val(valor);
+                //alert("Valor: "+valor);
+            //});
+        }
+    </script>
+
+    {{ include('@EasyAdmin/default/includes/_select2_widget.html.twig') }}
+{% endblock %}

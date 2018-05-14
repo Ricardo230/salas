@@ -1,0 +1,68 @@
+{% trans_default_domain 'FOSUserBundle' %}
+
+{% if error %}
+    <div class="alert alert-danger alert-dismissible fade in">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Ooops!</strong> {{ error.messageKey|trans(error.messageData, 'security') }}
+    </div>
+{% endif %}
+
+<form class="form-signin" action="{{ path("fos_user_security_check") }}" method="post">
+    {% if csrf_token %}
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}" />
+    {% endif %}
+    <h2 class="form-signin-heading">CMS Login</h2>
+    <label for="username">{{ 'security.login.username'|trans }}</label>
+    <input type="email" class="form-control" id="username" name="_username" value="{{ last_username }}" required="required" autocomplete="username" autofocus="" /><br>
+    <label for="password">{{ 'security.login.password'|trans }}</label>
+    <input type="password" class="form-control" id="password" name="_password" required="required" autocomplete="current-password" />
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" id="remember_me" name="_remember_me" value="on" />{{ 'security.login.remember_me'|trans }}
+        </label>
+    </div>
+    <input type="submit" id="_submit" class="btn btn-lg btn-primary btn-block" name="_submit" value="{{ 'security.login.submit'|trans }}" />
+</form>
+{% block stylesheets %}
+    <style>
+        body{
+            padding-top: 40px;
+            padding-bottom: 40px;
+            background-color: #eee;
+        }
+        .form-signin {
+            max-width: 330px;
+            padding: 15px;
+            margin: 0 auto;
+        }
+        .form-signin .form-signin-heading,
+        .form-signin .checkbox {
+            margin-bottom: 10px;
+        }
+        .form-signin .checkbox {
+            font-weight: normal;
+        }
+        .form-signin .form-control {
+            position: relative;
+            height: auto;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .form-signin .form-control:focus {
+            z-index: 2;
+        }
+        .form-signin input[type="email"] {
+            margin-bottom: -1px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+        .form-signin input[type="password"] {
+            margin-bottom: 10px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+    </style>
+{% endblock %}
